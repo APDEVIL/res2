@@ -30,15 +30,15 @@ export const orderStatusEnum = pgEnum("order_status", [
 
 // ─── Users ───────────────────────────────────────────────────────────
 export const users = pgTable("user", {
-  id:        text("id").primaryKey(),
-  name:      text("name").notNull(),
-  email:     text("email").notNull().unique(),
+  id:            text("id").primaryKey(),
+  name:          text("name").notNull(),
+  email:         text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull(),
-  phone:     text("phone"),
-  role:      userRoleEnum("role").notNull().default("CUSTOMER"),
-  image:     text("image"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  phone:         text("phone"),
+  role:          userRoleEnum("role").notNull().default("CUSTOMER"),
+  image:         text("image"),
+  createdAt:     timestamp("created_at").defaultNow().notNull(),
+  updatedAt:     timestamp("updated_at").defaultNow().notNull(),
 })
 
 // ─── Better Auth tables ──────────────────────────────────────────────
@@ -54,15 +54,19 @@ export const sessions = pgTable("session", {
 })
 
 export const accounts = pgTable("account", {
-  id:                   text("id").primaryKey(),
-  userId:               text("user_id").notNull().references(() => users.id),
-  accountId:            text("account_id").notNull(),
-  providerId:           text("provider_id").notNull(),
-  accessToken:          text("access_token"),
-  refreshToken:         text("refresh_token"),
-  accessTokenExpiresAt: timestamp("access_token_expires_at"),
-  createdAt:            timestamp("created_at").defaultNow().notNull(),
-  updatedAt:            timestamp("updated_at").defaultNow().notNull(),
+  id:                    text("id").primaryKey(),
+  userId:                text("user_id").notNull().references(() => users.id),
+  accountId:             text("account_id").notNull(),
+  providerId:            text("provider_id").notNull(),
+  accessToken:           text("access_token"),
+  refreshToken:          text("refresh_token"),
+  accessTokenExpiresAt:  timestamp("access_token_expires_at"),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+  scope:                 text("scope"),
+  idToken:               text("id_token"),
+  password:              text("password"),
+  createdAt:             timestamp("created_at").defaultNow().notNull(),
+  updatedAt:             timestamp("updated_at").defaultNow().notNull(),
 })
 
 export const verifications = pgTable("verification", {
@@ -152,7 +156,7 @@ export const menuCategoriesRelations = relations(menuCategories, ({ one, many })
 }))
 
 export const menuItemsRelations = relations(menuItems, ({ one }) => ({
-  restaurant: one(restaurants, { fields: [menuItems.restaurantId], references: [restaurants.id] }),
+  restaurant: one(restaurants, { fields: [menuItems.restaurantId],  references: [restaurants.id] }),
   category:   one(menuCategories, { fields: [menuItems.categoryId], references: [menuCategories.id] }),
 }))
 

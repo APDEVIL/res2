@@ -32,7 +32,12 @@ export const restaurantRouter = createTRPCRouter({
       with: {
         categories: true,
         menuItems:  true,
-        orders:     true,
+        orders: {
+          with: {
+            customer: true,
+            items:    true,
+          },
+        },
       },
     });
     if (!restaurant) throw new TRPCError({ code: "NOT_FOUND" });
