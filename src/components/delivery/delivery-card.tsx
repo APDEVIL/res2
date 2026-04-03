@@ -18,16 +18,16 @@ interface OrderItem {
 }
 
 interface DeliveryCardProps {
-  id:              string
-  status:          string
-  deliveryAddress: string
-  totalAmount:     string
-  notes:           string | null
-  createdAt:       Date
-  customer:        { name: string; email: string }
-  restaurant:      { name: string; address: string }
-  items:           OrderItem[]
-  mode:            "available" | "active"
+  id:               string
+  status:           string
+  deliveryAddress:  string
+  totalAmount:      string
+  notes:            string | null
+  createdAt:        Date
+  customer:         { name: string; email: string }
+  restaurant:       { name: string; address: string }
+  items:            OrderItem[]
+  mode:             "available" | "active"
 }
 
 export function DeliveryCard({
@@ -44,19 +44,21 @@ export function DeliveryCard({
 }: DeliveryCardProps) {
   const utils = api.useUtils()
 
-  const acceptOrder = api.delivery.acceptOrder.useMutation({
+  // FIX: Points to order.acceptOrder in our new router logic
+  const acceptOrder = api.order.acceptOrder.useMutation({
     onSuccess: () => {
       toast.success("Order accepted — go pick it up!")
-      void utils.delivery.getAvailableOrders.invalidate()
-      void utils.delivery.getMyDeliveries.invalidate()
+      void utils.order.getAvailablePickups.invalidate()
+      // If you have a 'My Deliveries' query in order router, invalidate it here
     },
     onError: (err) => toast.error(err.message),
   })
 
-  const markDelivered = api.delivery.markDelivered.useMutation({
+  // FIX: Points to order.updateStatus for marking delivered
+  const markDelivered = api.order.updateStatus.useMutation({
     onSuccess: () => {
       toast.success("Order marked as delivered")
-      void utils.delivery.getMyDeliveries.invalidate()
+      void utils.order.getAvailablePickups.invalidate()
     },
     onError: (err) => toast.error(err.message),
   })
@@ -167,7 +169,7 @@ export function DeliveryCard({
           <Button
             className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium h-10 gap-2"
             disabled={isPending}
-            onClick={() => markDelivered.mutate({ orderId: id })}
+            onClick={() => markDelivered.mutate({ orderId: id, status: "DELIVERED" })}
           >
             <CheckCircle className="w-4 h-4" />
             {markDelivered.isPending ? "Marking..." : "Mark as Delivered"}

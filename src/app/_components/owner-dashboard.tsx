@@ -7,14 +7,16 @@ import {
   Clock,
   UtensilsCrossed,
   AlertCircle,
+  Plus,
 } from "lucide-react"
 import { api } from "@/trpc/react"
 import { Card, CardContent } from "@/components/ui/card"
 import { OrderStatusBadge } from "@/components/shared/order-status-badge"
-import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
+// --- Sub-component: StatCard ---
 function StatCard({
   label,
   value,
@@ -48,12 +50,13 @@ function StatCard({
   )
 }
 
+// --- Main Component ---
 export function OwnerDashboard() {
-  const { data: restaurant, isLoading } =
-    api.restaurant.getMyRestaurant.useQuery()
+  const { data: restaurant, isLoading } = api.restaurant.getMyRestaurant.useQuery()
 
   const stats = useMemo(() => {
-    if (!restaurant) return null
+    // Safety check for null restaurant or missing arrays
+    if (!restaurant?.orders) return null
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -74,12 +77,12 @@ export function OwnerDashboard() {
       totalOrdersToday: todayOrders.length,
       totalRevenue:     totalRevenue.toFixed(2),
       pendingOrders,
-      menuItemsCount:   restaurant.menuItems.length,
+      menuItemsCount:   restaurant.menuItems?.length ?? 0,
     }
   }, [restaurant])
 
   const recentOrders = useMemo(() => {
-    if (!restaurant) return []
+    if (!restaurant?.orders) return []
     return [...restaurant.orders]
       .sort(
         (a, b) =>
@@ -101,16 +104,26 @@ export function OwnerDashboard() {
     )
   }
 
+  // Handle new owner state (No restaurant record in DB)
   if (!restaurant) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-          <AlertCircle className="w-7 h-7 text-white/20" />
+      <div className="flex flex-col items-center justify-center py-32 gap-6">
+        <div className="w-20 h-20 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+          <UtensilsCrossed className="w-10 h-10 text-orange-400" />
         </div>
-        <p className="text-white/40">No restaurant found</p>
-        <p className="text-white/30 text-sm">
-          Contact support to set up your restaurant
-        </p>
+        <div className="text-center space-y-2">
+          <h2 className="text-white text-xl font-semibold">Ready to start cooking?</h2>
+          <p className="text-white/40 max-w-xs mx-auto">
+            You haven't set up your restaurant profile yet.
+          </p>
+        </div>
+        <Link 
+          href="/owner-menu" 
+          className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          Create Restaurant Profile
+        </Link>
       </div>
     )
   }

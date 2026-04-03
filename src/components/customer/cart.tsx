@@ -15,21 +15,39 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import type { PlaceOrderInput } from "@/lib/validators"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useEffect } from "react"
 
 export function Cart() {
   const router = useRouter()
   const { items, removeItem, updateQty, clearCart, totalAmount, restaurantId } = useCart()
 
-  const { register, handleSubmit, formState: { errors } } = useForm<PlaceOrderInput>({
+  const { 
+    register, 
+    handleSubmit, 
+    setValue,
+    formState: { errors } 
+  } = useForm<PlaceOrderInput>({
     resolver: zodResolver(placeOrderSchema),
-    defaultValues: { items: [] },
+    defaultValues: { 
+      deliveryAddress: "",
+      notes: "",
+      items: [], 
+    },
   })
+
+  // Synchronize Zustand items with React Hook Form state whenever items change
+  useEffect(() => {
+    setValue("items", items.map(i => ({
+      menuItemId: i.menuItemId,
+      quantity: i.quantity
+    })))
+  }, [items, setValue])
 
   const placeOrder = api.order.place.useMutation({
     onSuccess: () => {
       clearCart()
       toast.success("Order placed successfully!")
-      router.push("/orders")
+      router.push("/customer-orders") // Updated to match your folder structure
     },
     onError: (err) => {
       toast.error(err.message)
@@ -37,16 +55,24 @@ export function Cart() {
   })
 
   const onSubmit = (data: PlaceOrderInput) => {
-    if (!restaurantId) return
+    if (!restaurantId) {
+      toast.error("Restaurant information is missing")
+      return
+    }
+    
     placeOrder.mutate({
       restaurantId,
       deliveryAddress: data.deliveryAddress,
-      notes:           data.notes,
-      items:           items.map((i) => ({
-        menuItemId: i.menuItemId,
-        quantity:   i.quantity,
-      })),
+      notes: data.notes,
+      items: data.items, // Now correctly populated from form state
     })
+  }
+
+  // Handle silent validation failures
+  const onInvalid = (errors: any) => {
+    console.error("Form Validation Errors:", errors)
+    if (errors.deliveryAddress) toast.error("Delivery address is required")
+    else if (errors.items) toast.error("Your cart is empty")
   }
 
   if (items.length === 0) {
@@ -141,7 +167,7 @@ export function Cart() {
         </span>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-5">
         <div className="space-y-2">
           <Label className="text-white/70 text-sm">Delivery Address</Label>
           <Input

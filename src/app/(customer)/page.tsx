@@ -1,5 +1,5 @@
 import { api, HydrateClient } from "@/trpc/server"
-import { RestaurantList } from "./_components/restaurant-list"
+import { RestaurantList } from "@/app/_components/restaurant-list"
 
 export default async function CustomerHomePage() {
   void api.restaurant.getAll.prefetch()

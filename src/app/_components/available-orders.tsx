@@ -6,8 +6,9 @@ import { DeliveryCard } from "@/components/delivery/delivery-card"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export function AvailableOrders() {
+  // Updated to use api.order.getAvailablePickups to match the router logic
   const { data: orders, isLoading } =
-    api.delivery.getAvailableOrders.useQuery(undefined, {
+    api.order.getAvailablePickups.useQuery(undefined, {
       refetchInterval: 30000,
     })
 

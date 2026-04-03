@@ -35,15 +35,15 @@ interface OrderItem {
 }
 
 interface OrderCardProps {
-  id:              string
-  status:          string
-  deliveryAddress: string
-  totalAmount:     string
-  notes:           string | null
-  createdAt:       Date
-  customer:        { name: string; email: string }
-  items:           OrderItem[]
-  onStatusUpdate?: () => void
+  id:               string
+  status:           string
+  deliveryAddress:  string
+  totalAmount:      string
+  notes:            string | null
+  createdAt:        Date
+  customer:         { name: string; email: string }
+  items:            OrderItem[]
+  onStatusUpdate?:  () => void
 }
 
 export function OrderCard({
@@ -62,7 +62,8 @@ export function OrderCard({
   const updateStatus = api.order.updateStatus.useMutation({
     onSuccess: () => {
       toast.success("Order status updated")
-      void utils.order.getRestaurantOrders.invalidate()
+      // FIX: Invalidate the specific query used in OwnerOrderList
+      void utils.restaurant.getMyRestaurant.invalidate()
       onStatusUpdate?.()
     },
     onError: (err) => toast.error(err.message),
